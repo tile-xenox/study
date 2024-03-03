@@ -1,0 +1,120 @@
+*, ::before, ::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  block-size: 100%;
+}
+
+.wrapper {
+  --lt-threshold-bit: 0;
+
+  container-name: side-panel;
+  block-size: 100%;
+
+  .container {
+    /* setting variables */
+    --side-width: 25%;
+    --gap: 1.2rem;
+    --padding: 0.5rem;
+    --right-bit: 0;
+    --toggle-bit: 1;
+    --resize-bit: 1;
+    --min: 10rem;
+    --max: 60%;
+    --collapse-ratio: 1;
+    --expand-ratio: 1;
+    /* calculate variables */
+    --left-bit: (1 - var(--right-bit));
+    --check-bit: 0;
+    --reverse-bit: 0;
+    --open-base-bit: (var(--reverse-bit) + var(--check-bit));
+    --open-bit: var(--open-base-bit) * (2 - var(--open-base-bit)); /* x(2 - x) */
+    --close-bit: (1 - var(--open-bit));
+    --side-size: clamp(var(--min), var(--side-width), var(--max)) * var(--open-bit);
+    --toggle-visible-bit: min(var(--toggle-bit) + var(--close-bit) + var(--lt-threshold-bit), 1);
+    --gap-size: var(--gap) * var(--toggle-visible-bit);
+
+    position: relative;
+    block-size: 100%;
+
+    &:has(> .gap > .toggle:checked) {
+      --check-bit: 1;
+    }
+
+    > * {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    > .side {
+      z-index: 2;
+    }
+
+    > .main {
+      --todo: 1;
+    }
+
+    > .gap {
+      background-color: whitesmoke;
+      
+      &:hover {
+        filter: brightness(calc(1 - 0.2 * var(--toggle-visible-bit)));
+      }
+
+      > .icon {
+        position: absolute;
+        overflow: hidden;
+        inline-size: 100%;
+        white-space: nowrap;
+        bottom: var(--padding);
+        right: calc(100% / 8);
+        text-align: end;
+        color: cadetblue;
+        font-weight: bold;
+        font-size: calc(var(--gap) * 0.7);
+
+        --left-and-open: var(--left-bit) * var(--open-bit);
+        --right-and-close: var(--right-bit) * var(--close-bit);
+        --left-visible-bit: min(var(--left-and-open) + var(--right-and-close), 1);
+        --right-visible-bit: (1 - var(--left-visible-bit));
+
+        &.angle-left {
+          inline-size: calc(100% * var(--left-visible-bit));
+        }
+
+        &.angle-right {
+          inline-size: calc(100% * var(--right-visible-bit));
+        }
+      }
+
+      > .toggle {
+        position: absolute;
+        inset: 0;
+        inline-size: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+    }
+
+    > .resizer {
+      z-index: 4;
+    }
+
+    > .shadow {
+      z-index: 3;
+
+    }
+  }
+
+  @container side-panel style(--lt-threshold-bit: 1) {
+    .container {
+      background-color: red;
+    }
+  }
+}
