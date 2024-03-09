@@ -8,113 +8,97 @@ html, body {
   block-size: 100%;
 }
 
-.wrapper {
+.container {
+  /* setting variables */
   --lt-threshold-bit: 0;
+  --side-width-base: 25%;
+  --gap: 1.2rem; /* from size variable */
+  --padding: 0.5rem; /* from size variable */
+  --right-bit: 0;
+  --toggle-bit: 1;
+  --resize-bit: 1;
+  --min-base: 10rem;
+  --max-base: 60%;
+  --collapse-ratio-base: 1;
+  --expand-ratio-base: 1;
+  /* fixed variables */
+  --min: clamp(0, var(--min-base), 100% - var(--gap));
+  --max: clamp(var(--min), var(--max-base), 100% - var(--gap));
+  --side-width: clamp(var(--min), var(--side-width-base), var(--max));
+  --collapse-ratio: clamp(0, var(--collapse-ratio-base), 1);
+  --expand-ratio: clamp(0, var(--expand-ratio-base), 1);
 
-  container-name: side-panel;
+  /* internal variables */
+  /* side-toggle-when-lt-threshold */
+  --side-toggle-when-lt-threshold-bit: 0;
+  /* activate side-toggle-when-lt-threshold */
+  &:has(> .toggle-area-when-lt-threshold > .toggle:checked) {
+    --side-toggle-when-lt-threshold-bit: 1;
+  }
+  /* side-toggle */
+  --side-toggle-bit: 0;
+  /* activate side-toggle-bit */
+  &:has(> .gap > .toggle:checked) {
+    --side-toggle-bit: 1;
+  }
+  /* dragging-bit */
+  --dragging-bit: 0;
+  /* activate dragging-bit */
+  &:has(> .resizer:active) {
+    --dragging-bit: 1;
+  }
+  /* animation setting */
+  /* collapsed-bit */
+  --collapsed-base-bit: 0;
+  /* expanded-bit */
+  --expanded-base-bit: 0;
+  animation: collapsed-capture 1ms infinite, expanded-capture 1ms infinite;
+  animation-play-state: paused, paused;
+  /* activate collapsed-bit */
+  &:has(> .shadow > .collapse-area:hover) {
+    --collapsed-base-bit: 1;
+    animation-play-state: running, paused;
+  }
+  &:has(> .shadow > .collapse-area > .freeze:hover) {
+    animation-play-state: paused, paused;
+  }
+  /* deactivate collapsed-bit */
+  &:has(> .grow-area > .button:active) {
+    animation-play-state: running, paused;
+  }
+  /* activate expanded-bit */
+  &:has(> .shadow > .expand-area:hover) {
+    --expanded-base-bit: 1;
+    animation-play-state: paused, running;
+  }
+  &:has(> .shadow > .expand-area > .freeze:hover) {
+    animation-play-state: paused, paused;
+  }
+  /* deactivate expanded-bit */
+  &:has(> .shrink-area > .button:active) {
+    animation-play-state: paused, running;
+  }
+
+  /* calculate variables */
+  --left-bit: (1 - var(--right-bit));
+
+  position: relative;
   block-size: 100%;
 
-  .container {
-    /* setting variables */
-    --side-width: 25%;
-    --gap: 1.2rem;
-    --padding: 0.5rem;
-    --right-bit: 0;
-    --toggle-bit: 1;
-    --resize-bit: 1;
-    --min: 10rem;
-    --max: 60%;
-    --collapse-ratio: 1;
-    --expand-ratio: 1;
-    /* calculate variables */
-    --left-bit: (1 - var(--right-bit));
-    --check-bit: 0;
-    --reverse-bit: 0;
-    --open-base-bit: (var(--reverse-bit) + var(--check-bit));
-    --open-bit: var(--open-base-bit) * (2 - var(--open-base-bit)); /* x(2 - x) */
-    --close-bit: (1 - var(--open-bit));
-    --side-size: clamp(var(--min), var(--side-width), var(--max)) * var(--open-bit);
-    --toggle-visible-bit: min(var(--toggle-bit) + var(--close-bit) + var(--lt-threshold-bit), 1);
-    --gap-size: var(--gap) * var(--toggle-visible-bit);
-
-    position: relative;
-    block-size: 100%;
-
-    &:has(> .gap > .toggle:checked) {
-      --check-bit: 1;
-    }
-
-    > * {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      overflow: hidden;
-      z-index: 1;
-    }
-
-    > .side {
-      z-index: 2;
-    }
-
-    > .main {
-      --todo: 1;
-    }
-
-    > .gap {
-      background-color: whitesmoke;
-      
-      &:hover {
-        filter: brightness(calc(1 - 0.2 * var(--toggle-visible-bit)));
-      }
-
-      > .icon {
-        position: absolute;
-        overflow: hidden;
-        inline-size: 100%;
-        white-space: nowrap;
-        bottom: var(--padding);
-        right: calc(100% / 8);
-        text-align: end;
-        color: cadetblue;
-        font-weight: bold;
-        font-size: calc(var(--gap) * 0.7);
-
-        --left-and-open: var(--left-bit) * var(--open-bit);
-        --right-and-close: var(--right-bit) * var(--close-bit);
-        --left-visible-bit: min(var(--left-and-open) + var(--right-and-close), 1);
-        --right-visible-bit: (1 - var(--left-visible-bit));
-
-        &.angle-left {
-          inline-size: calc(100% * var(--left-visible-bit));
-        }
-
-        &.angle-right {
-          inline-size: calc(100% * var(--right-visible-bit));
-        }
-      }
-
-      > .toggle {
-        position: absolute;
-        inset: 0;
-        inline-size: 100%;
-        opacity: 0;
-        cursor: pointer;
-      }
-    }
-
-    > .resizer {
-      z-index: 4;
-    }
-
-    > .shadow {
-      z-index: 3;
-
-    }
+  > * {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+    z-index: 1;
   }
 
-  @container side-panel style(--lt-threshold-bit: 1) {
-    .container {
-      background-color: red;
-    }
-  }
+  
+}
+
+@keyframes collapsed-capture {
+  0%, 100% { --collapsed-bit: var(--collapsed-base-bit); }
+}
+@keyframes expanded-capture {
+  0%, 100% { --expanded-bit: var(--expanded-base-bit); }
 }

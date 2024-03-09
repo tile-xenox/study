@@ -1,0 +1,46 @@
+*, ::before, ::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  block-size: 100%;
+}
+
+.h-100 {
+  block-size: 100%;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.5rem;
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.pw {
+  padding-inline: 1.5rem;
+}
+
+.pt {
+  padding-top: 1rem;
+}
+
+.pb {
+  padding-bottom: 1rem;
+}
+
+.border {
+  border: 1px solid black;
+}
