@@ -12,34 +12,35 @@ html, body {
   /* setting variables */
   --lt-threshold-bit: 0;
   --side-width-base: 25%;
-  --gap: 1.2rem; /* from size variable */
+  --gap: 1.5rem; /* from size variable */
   --padding: 0.5rem; /* from size variable */
   --right-bit: 0;
   --toggle-bit: 1;
   --resize-bit: 1;
-  --min-base: 10rem;
+  --min-base: 5rem;
   --max-base: 60%;
   --collapse-ratio-base: 1;
   --expand-ratio-base: 1;
   /* fixed variables */
-  --min: clamp(0, var(--min-base), 100% - var(--gap));
-  --max: clamp(var(--min), var(--max-base), 100% - var(--gap));
+  --limit: (100% - var(--gap));
+  --min: clamp(0px, var(--min-base), var(--limit));
+  --max: clamp(var(--min), var(--max-base), var(--limit));
   --side-width: clamp(var(--min), var(--side-width-base), var(--max));
   --collapse-ratio: clamp(0, var(--collapse-ratio-base), 1);
   --expand-ratio: clamp(0, var(--expand-ratio-base), 1);
 
   /* internal variables */
-  /* side-toggle-when-lt-threshold */
-  --side-toggle-when-lt-threshold-bit: 0;
-  /* activate side-toggle-when-lt-threshold */
-  &:has(> .toggle-area-when-lt-threshold > .toggle:checked) {
-    --side-toggle-when-lt-threshold-bit: 1;
+  /* lt-threshold-check */
+  --lt-threshold-check-bit: 0;
+  /* activate lt-threshold-check */
+  &:has(> .lt-threshold > input[type="checkbox"]:checked) {
+    --lt-threshold-check-bit: 1;
   }
-  /* side-toggle */
-  --side-toggle-bit: 0;
-  /* activate side-toggle-bit */
-  &:has(> .gap > .toggle:checked) {
-    --side-toggle-bit: 1;
+  /* check */
+  --check-bit: 0;
+  /* activate check-bit */
+  &:has(> .gap > input[type="checkbox"]:checked) {
+    --check-bit: 1;
   }
   /* dragging-bit */
   --dragging-bit: 0;
@@ -63,7 +64,7 @@ html, body {
     animation-play-state: paused, paused;
   }
   /* deactivate collapsed-bit */
-  &:has(> .grow-area > .button:active) {
+  &:has(> .grow > button:active) {
     animation-play-state: running, paused;
   }
   /* activate expanded-bit */
@@ -75,12 +76,15 @@ html, body {
     animation-play-state: paused, paused;
   }
   /* deactivate expanded-bit */
-  &:has(> .shrink-area > .button:active) {
+  &:has(> .shrink > button:active) {
     animation-play-state: paused, running;
   }
 
   /* calculate variables */
   --left-bit: (1 - var(--right-bit));
+  --gt-threshold-bit: (1 - var(--lt-threshold-bit));
+  --side-visible-bit: (var(--lt-threshold-bit) * var(--lt-threshold-check-bit) + var(--gt-threshold-bit) * var(--check-bit) * (1 - var(--collapsed-bit)));
+  --side-size: min(var(--gt-threshold-bit) * var(--expanded-bit) * var(--limit) + var(--side-visible-bit) * var(--side-width), var(--limit));
 
   position: relative;
   block-size: 100%;
@@ -90,10 +94,82 @@ html, body {
     top: 0;
     bottom: 0;
     overflow: hidden;
-    z-index: 1;
   }
 
-  
+  > .action-area {
+    z-index: 3;
+    background-color: lightgrey;
+
+    > .icon {
+      position: absolute;
+      bottom: var(--padding);
+      text-align: center;
+      font-size: calc(var(--gap) * 0.8);
+      font-weight: bold;
+      color: cadetblue;
+      overflow: hidden;
+    }
+
+    &.toggle > input[type="checkbox"],
+    &.button > button[type="button"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+
+  > .lt-threshold {
+    --size: var(--lt-threshold-bit) * var(--gap);
+    left: calc(var(--right-bit) * (100% - var(--size)));
+    right: calc(var(--left-bit) * (100% - var(--size)));
+
+    > .icon {
+      --open-bit: var(--lt-threshold-check-bit);
+      --close-bit: (1 - var(--open-bit));
+
+      &.angle-left {
+        inline-size: calc(100% * (var(--left-bit) * var(--open-bit) + var(--right-bit) * var(--close-bit)));
+      }
+
+      &.angle-right {
+        inline-size: calc(100% * (var(--left-bit) * var(--close-bit) + var(--right-bit) * var(--open-bit)));
+      }
+    }
+  }
+
+  > .grow {
+    --size: var(--gt-threshold-bit) * var(--collapsed-bit) * var(--gap);
+    left: calc(var(--right-bit) * (100% - var(--size)));
+    right: calc(var(--left-bit) * (100% - var(--size)));
+
+    > .angle-left {
+      inline-size: calc(100% * var(--right-bit));
+    }
+
+    > .angle-right {
+      inline-size: calc(100% * var(--left-bit));
+    }
+  }
+
+  > .side {
+    --inline-start-gap: min(var(--lt-threshold-bit) + var(--collapsed-bit), 1) * var(--gap);
+    --inline-end-size: (100% - var(--side-size) - var(--inline-start-gap));
+    left: calc(var(--left-bit) * var(--inline-start-gap) + var(--right-bit) * var(--inline-end-size));
+    right: calc(var(--right-bit) * var(--inline-start-gap) + var(--left-bit) * var(--inline-end-size));
+    z-index: 2;
+
+    > * {
+      padding: var(--padding);
+      block-size: 100%;
+      overflow: hidden;
+      border: 1px solid black;
+    }
+  }
+
+  > .gap.toggle.action-area {
+    --size: var(--gap);
+  }
 }
 
 @keyframes collapsed-capture {
