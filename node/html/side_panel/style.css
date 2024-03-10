@@ -9,20 +9,29 @@ html, body {
 }
 
 .container {
-  /* setting variables */
-  --lt-threshold-bit: 0;
+  /* style setting variables */
+  --action-area-bg: lightgrey;
+  --icon-color: cadetblue;
+  --side-bg: white;
+  --resize-bg: black;
+  /* layout setting variables */
   --side-width-base: 25%;
-  --gap: 1.5rem; /* from size variable */
+  --action-area-size: 1.5rem; /* from size variable */
   --padding: 0.5rem; /* from size variable */
+  --lt-threshold-bit: 0;
+  --hide-gap-bit: 0;
   --right-bit: 0;
+  --resize-default-size: 2px;
+  --resize-add-size: 4px;
+  /* action setting variables */
   --toggle-bit: 1;
   --resize-bit: 1;
   --min-base: 5rem;
   --max-base: 60%;
-  --collapse-ratio-base: 1;
-  --expand-ratio-base: 1;
+  --collapse-ratio-base: 0.5;
+  --expand-ratio-base: 0.5;
   /* fixed variables */
-  --limit: (100% - var(--gap));
+  --limit: (100% - var(--action-area-size));
   --min: clamp(0px, var(--min-base), var(--limit));
   --max: clamp(var(--min), var(--max-base), var(--limit));
   --side-width: clamp(var(--min), var(--side-width-base), var(--max));
@@ -45,7 +54,7 @@ html, body {
   /* dragging-bit */
   --dragging-bit: 0;
   /* activate dragging-bit */
-  &:has(> .resizer:active) {
+  &:has(> .resize:active) {
     --dragging-bit: 1;
   }
   /* animation setting */
@@ -85,6 +94,7 @@ html, body {
   --gt-threshold-bit: (1 - var(--lt-threshold-bit));
   --side-visible-bit: (var(--lt-threshold-bit) * var(--lt-threshold-check-bit) + var(--gt-threshold-bit) * var(--check-bit) * (1 - var(--collapsed-bit)));
   --side-size: min(var(--gt-threshold-bit) * var(--expanded-bit) * var(--limit) + var(--side-visible-bit) * var(--side-width), var(--limit));
+  --action-visible-bit: var(--gt-threshold-bit) * (1 - var(--collapsed-bit)) * (1 - var(--expanded-bit));
 
   position: relative;
   block-size: 100%;
@@ -98,15 +108,15 @@ html, body {
 
   > .action-area {
     z-index: 3;
-    background-color: lightgrey;
+    background-color: var(--action-area-bg);
 
     > .icon {
       position: absolute;
       bottom: var(--padding);
       text-align: center;
-      font-size: calc(var(--gap) * 0.8);
+      font-size: calc(var(--action-area-size) * 0.8);
       font-weight: bold;
-      color: cadetblue;
+      color: var(--icon-color);
       overflow: hidden;
     }
 
@@ -119,8 +129,14 @@ html, body {
     }
   }
 
+  > .content-area > * {
+    padding: var(--padding);
+    block-size: 100%;
+    overflow: hidden;
+  }
+
   > .lt-threshold {
-    --size: var(--lt-threshold-bit) * var(--gap);
+    --size: var(--lt-threshold-bit) * var(--action-area-size);
     left: calc(var(--right-bit) * (100% - var(--size)));
     right: calc(var(--left-bit) * (100% - var(--size)));
 
@@ -139,7 +155,7 @@ html, body {
   }
 
   > .grow {
-    --size: var(--gt-threshold-bit) * var(--collapsed-bit) * var(--gap);
+    --size: var(--gt-threshold-bit) * var(--collapsed-bit) * var(--action-area-size);
     left: calc(var(--right-bit) * (100% - var(--size)));
     right: calc(var(--left-bit) * (100% - var(--size)));
 
@@ -153,22 +169,77 @@ html, body {
   }
 
   > .side {
-    --inline-start-gap: min(var(--lt-threshold-bit) + var(--collapsed-bit), 1) * var(--gap);
-    --inline-end-size: (100% - var(--side-size) - var(--inline-start-gap));
-    left: calc(var(--left-bit) * var(--inline-start-gap) + var(--right-bit) * var(--inline-end-size));
-    right: calc(var(--right-bit) * var(--inline-start-gap) + var(--left-bit) * var(--inline-end-size));
+    --inline-start-size: min(var(--lt-threshold-bit) + var(--collapsed-bit), 1) * var(--action-area-size);
+    --inline-end-size: (100% - var(--side-size) - var(--inline-start-size));
+    left: calc(var(--left-bit) * var(--inline-start-size) + var(--right-bit) * var(--inline-end-size));
+    right: calc(var(--right-bit) * var(--inline-start-size) + var(--left-bit) * var(--inline-end-size));
     z-index: 2;
-
-    > * {
-      padding: var(--padding);
-      block-size: 100%;
-      overflow: hidden;
-      border: 1px solid black;
+    background-color: var(--side-bg);
+  }
+  
+  > .resize {
+    --resize-visible-bit: var(--action-visible-bit) * var(--resize-bit) * var(--check-bit);
+    --strong-bit: 0;
+    &:hover,
+    &:has(+ .gap:hover) {
+      --strong-bit: 1;
     }
+    --inline-end-size: (100% - (var(--side-size) + var(--resize-default-size) + var(--resize-add-size) * var(--strong-bit)));
+    z-index: 5;
+    background-color: var(--resize-bg);
+    cursor: ew-resize;
+    left: calc(var(--left-bit) * var(--side-size) + var(--right-bit) * var(--inline-end-size));
+    right: calc(var(--right-bit) * var(--side-size) + var(--left-bit) * var(--inline-end-size));
+    bottom: calc(100% * (1 - var(--resize-visible-bit)));
   }
 
   > .gap.toggle.action-area {
-    --size: var(--gap);
+    --gap-visible-bit: var(--action-visible-bit) * (1 - var(--hide-gap-bit));
+    --inline-end-size: (100% - var(--side-size) - var(--action-area-size) * var(--gap-visible-bit));
+    left: calc(var(--left-bit) * var(--side-size) + var(--right-bit) * var(--inline-end-size));
+    right: calc(var(--right-bit) * var(--side-size) + var(--left-bit) * var(--inline-end-size));
+
+    > .icon {
+      --open-bit: var(--check-bit);
+      --close-bit: (1 - var(--open-bit));
+      right: calc(100% * (1 - var(--toggle-bit)));
+
+      &.angle-left {
+        inline-size: calc(100% * (var(--left-bit) * var(--open-bit) + var(--right-bit) * var(--close-bit)));
+      }
+
+      &.angle-right {
+        inline-size: calc(100% * (var(--left-bit) * var(--close-bit) + var(--right-bit) * var(--open-bit)));
+      }
+    }
+
+    > input[type="checkbox"] {
+      bottom: calc(100% * (1 - var(--toggle-bit)));
+    }
+  }
+
+  > .main {
+    --inline-start-action-visible-bit: min(var(--lt-threshold-bit) + var(--collapsed-bit) + (1 - var(--hide-gap-bit)) * (1 - var(--expanded-bit)), 1);
+    --inline-start-size: (var(--gt-threshold-bit) * var(--side-size) + var(--action-area-size) * var(--inline-start-action-visible-bit));
+    --inline-end-action-visible-bit: var(--gt-threshold-bit) * var(--expanded-bit);
+    --inline-end-size: var(--action-area-size) * var(--inline-end-action-visible-bit);
+    left: calc(var(--left-bit) * var(--inline-start-size) + var(--right-bit) * var(--inline-end-size));
+    right: calc(var(--right-bit) * var(--inline-start-size) + var(--left-bit) * var(--inline-end-size));
+    z-index: 1;
+  }
+
+  > .shrink {
+    --size: var(--gt-threshold-bit) * var(--expanded-bit) * var(--action-area-size);
+    left: calc(var(--left-bit) * (100% - var(--size)));
+    right: calc(var(--right-bit) * (100% - var(--size)));
+
+    > .angle-left {
+      inline-size: calc(100% * var(--left-bit));
+    }
+
+    > .angle-right {
+      inline-size: calc(100% * var(--right-bit));
+    }
   }
 }
 

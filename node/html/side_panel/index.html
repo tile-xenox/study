@@ -29,11 +29,16 @@
         title="grow side panel"
       ></button>
     </div>
-    <div class="side">
+    <div class="side content-area">
       <div>
         This is a side
       </div>
     </div>
+    <div
+      id="resize"
+      class="resize"
+      draggable="true"
+    ></div>
     <div class="action-area toggle gap">
       <div class="icon angle-left"><<</div>
       <div class="icon angle-right">>></div>
@@ -44,8 +49,7 @@
         checked
       >
     </div>
-    <div class="resizer" draggable="true"></div>
-    <div class="main">
+    <div class="main content-area">
       <div>
         This is a main
       </div>
@@ -72,4 +76,5 @@
     </div>
   </div>
 </body>
+<script src="./index.js"></script>
 </html>
