@@ -2,19 +2,18 @@ const container = document.getElementById('container');
 const droppableArea = document.getElementById('droppable-area');
 const resize = document.getElementById('resize');
 
-let dragging = false;
+let left = NaN;
 resize?.addEventListener('dragstart', (e) => {
-    dragging = true;
+    left = container?.getBoundingClientRect().left ?? NaN;
 });
 
 droppableArea?.addEventListener('dragover', (e) => {
-    if (!dragging) return;
+    if (Number.isNaN(left)) return;
     e.preventDefault();
 });
 
-const { left = 0 } = container?.getBoundingClientRect() ?? {};
 droppableArea?.addEventListener('drop', (e) => {
-    if (!dragging) return;
+    if (Number.isNaN(left)) return;
     if (!container) return;
     e.preventDefault();
     const x = e.clientX - left;
@@ -23,5 +22,5 @@ droppableArea?.addEventListener('drop', (e) => {
 });
 
 resize?.addEventListener('dragend', () => {
-    dragging = false;
+    left = NaN;
 });

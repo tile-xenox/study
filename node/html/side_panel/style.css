@@ -14,6 +14,7 @@ html, body {
   --icon-color: cadetblue;
   --side-bg: white;
   --resize-bg: black;
+  --shadow-alpha: 0.6;
   /* layout setting variables */
   --side-width-base: 25%;
   --action-area-size: 1.5rem; /* from size variable */
@@ -26,7 +27,7 @@ html, body {
   /* action setting variables */
   --toggle-bit: 1;
   --resize-bit: 1;
-  --min-base: 5rem;
+  --min-base: 10rem;
   --max-base: 60%;
   --collapse-ratio-base: 0.5;
   --expand-ratio-base: 0.5;
@@ -51,42 +52,50 @@ html, body {
   &:has(> .gap > input[type="checkbox"]:checked) {
     --check-bit: 1;
   }
-  /* dragging-bit */
-  --dragging-bit: 0;
-  /* activate dragging-bit */
-  &:has(> .resize:active) {
-    --dragging-bit: 1;
-  }
+
   /* animation setting */
   /* collapsed-bit */
   --collapsed-base-bit: 0;
   /* expanded-bit */
   --expanded-base-bit: 0;
-  animation: collapsed-capture 1ms infinite, expanded-capture 1ms infinite;
-  animation-play-state: paused, paused;
+  /* dragging-bit */
+  --dragging-fix-base-bit: 0;
+
+  animation: collapsed-capture 1ms infinite,
+             expanded-capture 1ms infinite,
+             dragging-fix-capture 1ms infinite;
+  animation-play-state: paused, paused, paused;
   /* activate collapsed-bit */
   &:has(> .shadow > .collapse-area:hover) {
     --collapsed-base-bit: 1;
-    animation-play-state: running, paused;
+    animation-play-state: running, paused, paused;
   }
   &:has(> .shadow > .collapse-area > .freeze:hover) {
-    animation-play-state: paused, paused;
+    animation-play-state: paused, paused, paused;
   }
   /* deactivate collapsed-bit */
   &:has(> .grow > button:active) {
-    animation-play-state: running, paused;
+    animation-play-state: running, paused, paused;
   }
   /* activate expanded-bit */
   &:has(> .shadow > .expand-area:hover) {
     --expanded-base-bit: 1;
-    animation-play-state: paused, running;
+    animation-play-state: paused, running, paused;
   }
   &:has(> .shadow > .expand-area > .freeze:hover) {
-    animation-play-state: paused, paused;
+    animation-play-state: paused, paused, paused;
   }
   /* deactivate expanded-bit */
   &:has(> .shrink > button:active) {
-    animation-play-state: paused, running;
+    animation-play-state: paused, running, paused;
+  }
+  /* activate dragging-fix-bit */
+  &:has(> .resize:active) {
+    --dragging-fix-base-bit: 1;
+    animation-play-state: paused, paused, running;
+  }
+  &:has(> .resize > .freeze:hover) {
+    animation-play-state: paused, paused, paused;
   }
 
   /* calculate variables */
@@ -101,8 +110,7 @@ html, body {
 
   > * {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    inset-block: 0;
     overflow: hidden;
   }
 
@@ -177,10 +185,55 @@ html, body {
     background-color: var(--side-bg);
   }
   
+  > .shadow {
+    /* dragging-base-bit */
+    --dragging-base-bit: 1;
+    /* activate dragging-base-bit */
+    /* &:has(+ .resize:active) {
+      --dragging-base-bit: 1;
+    } */
+    /* deactivate dragging-base-bit */
+    &:has(+ .resize:not(:active)) {
+      animation: dragging-delay-deactivate 2s 1 forwards;
+      animation-play-state: running;
+    }
+    --dragging-bit: var(--dragging-fix-bit) * var(--dragging-base-bit);
+    /* --dragging-bit: 1; */
+    --rgb: rgb(0 0 0 / var(--shadow-alpha));
+    inset-inline: 0;
+    bottom: calc(100% * (1 - var(--dragging-bit)));
+    background-image: linear-gradient(var(--rgb), var(--rgb));
+    z-index: 4;
+
+    > * {
+      position: absolute;
+      inset-block: 0;
+    }
+
+    > .auto-action:hover > .freeze {
+      block-size: 100%;
+      inline-size: 100%;
+      background-color: transparent;
+    }
+
+    > .collapse-area {
+      --size: var(--min) * var(--collapse-ratio);
+      left: calc(var(--right-bit) * (100% - var(--size)));
+      right: calc(var(--left-bit) * (100% - var(--size)));
+
+      background-color: red;
+
+      &:hover {
+        background-color: blue;
+      }
+    }
+  }
+  
   > .resize {
     --resize-visible-bit: var(--action-visible-bit) * var(--resize-bit) * var(--check-bit);
     --strong-bit: 0;
     &:hover,
+    &:active,
     &:has(+ .gap:hover) {
       --strong-bit: 1;
     }
@@ -191,6 +244,11 @@ html, body {
     left: calc(var(--left-bit) * var(--side-size) + var(--right-bit) * var(--inline-end-size));
     right: calc(var(--right-bit) * var(--side-size) + var(--left-bit) * var(--inline-end-size));
     bottom: calc(100% * (1 - var(--resize-visible-bit)));
+
+    &:active > .freeze {
+      block-size: 100%;
+      background-color: aquamarine;
+    }
   }
 
   > .gap.toggle.action-area {
@@ -248,4 +306,11 @@ html, body {
 }
 @keyframes expanded-capture {
   0%, 100% { --expanded-bit: var(--expanded-base-bit); }
+}
+@keyframes dragging-fix-capture {
+  0%, 100% { --dragging-fix-bit: var(--dragging-fix-base-bit) }
+}
+@keyframes dragging-delay-deactivate {
+  0%, 50% { --dragging-base-bit: 1 }
+  50%, 100% { --dragging-base-bit: 0; }
 }
