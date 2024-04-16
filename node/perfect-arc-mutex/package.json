@@ -1,0 +1,17 @@
+{
+  "name": "perfect-arc-mutex",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build",
+    "test": "vitest",
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vitest": "^1.5.0"
+  }
+}
