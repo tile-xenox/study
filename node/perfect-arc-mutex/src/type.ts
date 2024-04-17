@@ -4,6 +4,10 @@ export type SenderMessage = {
 } & ({
     type: "connect",
 } | {
+    type: "setup",
+    cid: string,
+    i32: Int32Array,
+} | {
     type: "init",
     cid: string,
     value: unknown,
@@ -21,19 +25,32 @@ export type InnerState = {
     i32: Int32Array,
 };
 
-export type MessageQueue = Map<string, (msg: ReceiverMessage) => void>;
+export type MessageQueue = Map<string, {
+    resolve: (msg: ReceiverMessage) => void,
+    reject: (reason?: unknown) => void,
+}>;
 
-export type ReceiverMessage = {
-    id: string,
-} & ({
-    type: "connect",
-    status: "failed",
-    reason: string,
-} | {
-    type: "connect",
-    status: "success",
-    state: InnerState,
-} | {
+export type ReceiverMessage = { id: string } & (
+(
+    {
+        type: "connect",
+        cid: string,
+    } & ({
+        needSetup: false,
+        i32: Int32Array,
+    } | {
+        needSetup: true,
+    })
+) | (
+    {
+        type: "setup",
+    } & ({
+        result: true,
+    } | {
+        result: false,
+        i32: Int32Array,
+    })
+) | {
     type: "init",
     result: boolean,
 } | {

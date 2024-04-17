@@ -21,44 +21,58 @@ const post = <T extends ReceiverMessage['type']>(
 }
 
 (self as unknown as SharedWorkerGlobalScope).addEventListener("connect", (event) => {
-    console.log("connected");
     const port = event.ports[0];
     if (!port) return;
     const cid = crypto.randomUUID();
+    port.addEventListener("messageerror", (e) => {
+        console.error(e);
+    });
     port.addEventListener("message", (e: MessageEvent<SenderMessage>) => {
         const { data } = e;
         switch (data.type) {
             case "connect": {
+                console.log("connect");
                 (() => {
                     const store = globalStore.get(data.key);
                     if (store) {
                         store.cMap.set(cid, port);
                         post(port, "connect", {
                             id: data.id,
-                            status: "success",
-                            state: { cid, i32: store.i32 },
+                            needSetup: false,
+                            cid,
+                            i32: store.i32,
                         });
                         return;
                     }
-                    if (!crossOriginIsolated) {
-                        post(port, "connect", {
-                            id: data.id,
-                            status: "failed",
-                            reason: "crossOriginIsolated was false",
-                        });
-                        return;
-                    }
-                    const sab = new SharedArrayBuffer(16);
-                    const i32 = new Int32Array(sab);
-                    globalStore.set(data.key, {
-                        i32,
-                        value: undefined,
-                        cMap: new Map([[cid, port]])
-                    });
                     post(port, "connect", {
                         id: data.id,
-                        status: "success",
-                        state: { cid, i32 },
+                        needSetup: true,
+                        cid,
+                    });
+                })();
+                break;
+            }
+            case "setup": {
+                console.log("setup");
+                (() => {
+                    const store = globalStore.get(data.key);
+                    if (store) {
+                        store.cMap.set(cid, port);
+                        post(port, "setup", { 
+                            id: data.id,
+                            result: false,
+                            i32: store.i32,
+                        });
+                        return;
+                    }
+                    globalStore.set(data.key, {
+                        i32: data.i32,
+                        value: undefined,
+                        cMap: new Map([[cid, port]]),
+                    });
+                    post(port, "setup", {
+                        id: data.id,
+                        result: true,
                     });
                 })();
                 break;
